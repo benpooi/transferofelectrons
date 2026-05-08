@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ionic Bond Formation — O-Level Chemistry</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#eef2f7;font-family:'Segoe UI',Arial,system-ui,sans-serif}
+body{display:flex;align-items:center;justify-content:center}
+.app{display:flex;align-items:stretch;width:100vw;height:100vh;padding:12px;gap:12px}
+.sb{width:170px;flex-shrink:0;background:#fff;border-radius:14px;padding:14px 12px;box-shadow:0 2px 16px rgba(0,0,0,.1);display:flex;flex-direction:column;overflow-y:auto}
+.sb-title{font-size:.95rem;font-weight:700;color:#1a2748;margin-bottom:12px;letter-spacing:-.01em;padding-bottom:10px;border-bottom:1px solid #e8edf5}
+.sb-sub{font-size:.6rem;text-transform:uppercase;letter-spacing:.11em;color:#aab;font-weight:700;margin-bottom:7px}
+.cb{display:block;width:100%;padding:9px 11px;margin-bottom:5px;border:1.5px solid #dde4f0;background:#f7f9fc;color:#1a2748;border-radius:9px;cursor:pointer;font-size:1rem;font-weight:600;text-align:left;font-family:inherit;transition:all .15s;letter-spacing:.01em}
+.cb:hover{background:#eef3ff;border-color:#bbc8e8}
+.cb.on{background:#1a2748;color:#fff;border-color:#1a2748}
+.sb-div{height:1px;background:#e8edf5;margin:10px 0}
+.gbtn{display:block;width:100%;padding:10px 8px;border:none;border-radius:9px;cursor:pointer;font-size:.81rem;font-weight:700;font-family:inherit;text-align:center;transition:all .15s;line-height:1.35;background:#1a6f3f;color:#fff;margin-bottom:6px}
+.gbtn:disabled{opacity:.35;cursor:not-allowed}
+.gbtn:not(:disabled):hover{background:#155c35}
+.rbtn{display:block;width:100%;padding:9px 8px;border:1.5px solid #dde4f0;border-radius:9px;cursor:pointer;font-size:.81rem;font-weight:600;font-family:inherit;text-align:center;transition:all .15s;background:#f0f2f7;color:#1a2748}
+.rbtn:hover{background:#e4e9f5}
+.lgd{margin-top:auto;padding-top:10px;border-top:1px solid #e8edf5}
+.lgd-it{display:flex;align-items:center;gap:7px;font-size:.73rem;color:#445;margin-bottom:6px;font-weight:500}
+.main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;min-width:0}
+#cv{display:block;border-radius:12px;box-shadow:0 4px 22px rgba(0,0,0,.13)}
+#info{font-size:.86rem;color:#444;text-align:center;padding:9px 16px;background:#fff;border-radius:9px;box-shadow:0 1px 6px rgba(0,0,0,.07);line-height:1.5;width:100%}
+#info b{color:#1a1a1a;font-weight:600}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sb">
+    <div class="sb-title">⚗️ Ionic Bond<br>Formation</div>
+    <div class="sb-sub">Select Compound</div>
+    <button class="cb" data-c="LiCl" onclick="sel('LiCl')">LiCl</button>
+    <button class="cb on" data-c="NaCl" onclick="sel('NaCl')">NaCl</button>
+    <button class="cb" data-c="MgO" onclick="sel('MgO')">MgO</button>
+    <button class="cb" data-c="MgCl2" onclick="sel('MgCl2')">MgCl₂</button>
+    <button class="cb" data-c="Na2O" onclick="sel('Na2O')">Na₂O</button>
+    <div class="sb-div"></div>
+    <div class="sb-sub">Actions</div>
+    <button id="ab" class="gbtn" onclick="go()">⚡ Ionisation &amp;<br>Ionic Bond</button>
+    <button class="rbtn" onclick="rst()">↺  Reset</button>
+    <div class="lgd">
+      <div class="sb-sub" style="margin-bottom:8px">Electron Key</div>
+      <div class="lgd-it">
+        <svg width="18" height="18" viewBox="0 0 18 18"><line x1="3" y1="3" x2="15" y2="15" stroke="#c0392b" stroke-width="2.3" stroke-linecap="round"/><line x1="15" y1="3" x2="3" y2="15" stroke="#c0392b" stroke-width="2.3" stroke-linecap="round"/></svg>
+        Metal e⁻ (×)
+      </div>
+      <div class="lgd-it">
+        <svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5" fill="#1a6fc4"/></svg>
+        Non-metal e⁻ (•)
+      </div>
+      <div style="font-size:.65rem;color:#aab;margin-top:4px;line-height:1.4">Hund's rule applied<br>to all shells</div>
+    </div>
+  </div>
+  <div class="main">
+    <canvas id="cv"></canvas>
+    <div id="info"></div>
+  </div>
+</div>
+
+<script>
+const SA   =[Math.PI/2,0,-Math.PI/2,Math.PI];
+const SA_TB=[Math.PI/2,-Math.PI/2,0,Math.PI];
+
+let SR=[0,28,55,83],NR=20,DR=6,CS=5.5,PO=10,FS=1;
+
+const COMP={
+  LiCl:{name:'LiCl',desc:'Lithium chloride',M:[{s:'Li',sh:[2,1],q:'+'}],N:[{s:'Cl',sh:[2,8,7],q:'−'}],T:[[0,0]]},
+  NaCl:{name:'NaCl',desc:'Sodium chloride',M:[{s:'Na',sh:[2,8,1],q:'+'}],N:[{s:'Cl',sh:[2,8,7],q:'−'}],T:[[0,0]]},
+  MgO:{name:'MgO',desc:'Magnesium oxide',M:[{s:'Mg',sh:[2,8,2],q:'2+'}],N:[{s:'O',sh:[2,6],q:'2−'}],T:[[0,0],[0,0]]},
+  MgCl2:{name:'MgCl₂',desc:'Magnesium chloride',M:[{s:'Mg',sh:[2,8,2],q:'2+'}],N:[{s:'Cl',sh:[2,8,7],q:'−'},{s:'Cl',sh:[2,8,7],q:'−'}],T:[[0,0],[0,1]]},
+  Na2O:{name:'Na₂O',desc:'Sodium oxide',M:[{s:'Na',sh:[2,8,1],q:'+'},{s:'Na',sh:[2,8,1],q:'+'}],N:[{s:'O',sh:[2,6],q:'2−'}],T:[[0,0],[1,0]]}
+};
+
+function getSlotAngles(si,sym,isOuter){
+  if(si===0)return SA_TB;
+  if(isOuter&&sym==='O')return SA_TB;
+  return SA;
+}
+
+function oPos(cx,cy,r,n,sa){
+  sa=sa||SA;if(n<=0)return[];
+  const c=[0,0,0,0];for(let i=0;i<n;i++)c[i%4]++;
+  const p=[];
+  for(let s=0;s<4;s++){
+    if(!c[s])continue;
+    const a=sa[s],bx=cx+r*Math.cos(a),by=cy-r*Math.sin(a);
+    if(c[s]===1)p.push({x:bx,y:by});
+    else p.push({x:bx-PO*Math.sin(a),y:by-PO*Math.cos(a)});
+  }
+  for(let s=0;s<4;s++){
+    if(c[s]<2)continue;
+    const a=sa[s],bx=cx+r*Math.cos(a),by=cy-r*Math.sin(a);
+    p.push({x:bx+PO*Math.sin(a),y:by+PO*Math.cos(a)});
+  }
+  return p;
+}
+
+function xCol(){return'#c0392b';}
+function dCol(){return'#1a6fc4';}
+function txtCol(){return'#111';}
+function lineCol(){return'#9babc0';}
+
+function drawX(ctx,x,y,al){
+  al=al==null?1:al;
+  ctx.save();ctx.globalAlpha=al;ctx.strokeStyle=xCol();
+  ctx.lineWidth=Math.max(1.5,2.1*FS);ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(x-CS,y-CS);ctx.lineTo(x+CS,y+CS);
+  ctx.moveTo(x+CS,y-CS);ctx.lineTo(x-CS,y+CS);ctx.stroke();ctx.restore();
+}
+function drawDot(ctx,x,y,al){
+  al=al==null?1:al;
+  ctx.save();ctx.globalAlpha=al;ctx.fillStyle=dCol();
+  ctx.beginPath();ctx.arc(x,y,DR,0,Math.PI*2);ctx.fill();ctx.restore();
+}
+function drawE(ctx,x,y,isM,al){if(isM)drawX(ctx,x,y,al);else drawDot(ctx,x,y,al);}
+
+function drawNucleus(ctx,cx,cy,sym,isM){
+  ctx.beginPath();ctx.arc(cx,cy,NR,0,Math.PI*2);
+  ctx.fillStyle=isM?xCol():dCol();ctx.fill();
+  ctx.fillStyle='#fff';
+  const fs=Math.max(10,Math.round((sym.length>1?13:18)*FS));
+  ctx.font=`bold ${fs}px 'Segoe UI',system-ui,sans-serif`;
+  ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(sym,cx,cy);
+}
+
+function drawBrackets(ctx,cx,cy,r,charge){
+  const pd=Math.max(8,Math.round(13*FS)),tk=Math.max(10,Math.round(16*FS));
+  const L=cx-r-pd,R=cx+r+pd,T=cy-r-pd,B=cy+r+pd;
+  ctx.save();ctx.strokeStyle=txtCol();ctx.lineWidth=Math.max(1.8,2.6*FS);ctx.lineJoin='miter';
+  ctx.beginPath();ctx.moveTo(L+tk,T);ctx.lineTo(L,T);ctx.lineTo(L,B);ctx.lineTo(L+tk,B);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(R-tk,T);ctx.lineTo(R,T);ctx.lineTo(R,B);ctx.lineTo(R-tk,B);ctx.stroke();
+  const cfs=Math.max(12,Math.round(18*FS));
+  ctx.fillStyle=txtCol();ctx.font=`bold ${cfs}px 'Segoe UI',system-ui,sans-serif`;
+  ctx.textAlign='left';ctx.textBaseline='top';
+  ctx.fillText(charge,R+Math.max(2,Math.round(4*FS)),T-Math.round(2*FS));ctx.restore();
+}
+
+function drawAtom(ctx,cx,cy,data,outerN,xCross,ion,hideOuter){
+  const sh=data.sh,isM=data.isM,sym=data.s;
+  const rings=hideOuter?sh.length-1:sh.length;
+  const bR=SR[rings]+PO+DR+6;
+  for(let s=1;s<=rings;s++){
+    ctx.beginPath();ctx.arc(cx,cy,SR[s],0,Math.PI*2);
+    ctx.strokeStyle=lineCol();ctx.lineWidth=Math.max(1,1.7*FS);ctx.setLineDash([]);ctx.stroke();
+  }
+  for(let s=0;s<rings;s++){
+    const r=SR[s+1];
+    const isActualOuter=(s===sh.length-1)&&!hideOuter;
+    const n=isActualOuter?outerN:sh[s];
+    if(n<=0)continue;
+    oPos(cx,cy,r,n,getSlotAngles(s,sym,isActualOuter)).forEach(p=>drawE(ctx,p.x,p.y,isM));
+  }
+  (xCross||[]).forEach(p=>drawX(ctx,p.x,p.y));
+  drawNucleus(ctx,cx,cy,sym,isM);
+  if(ion)drawBrackets(ctx,cx,cy,bR,data.q);
+}
+
+function drawInitLabel(ctx,cx,cy,sh,text){
+  const gap=Math.max(14,Math.round(22*FS));
+  const y=cy-SR[sh.length]-gap;
+  const fs=Math.max(12,Math.round(16*FS));
+  ctx.save();ctx.fillStyle=txtCol();
+  ctx.font=`600 ${fs}px 'Segoe UI',system-ui,sans-serif`;
+  ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillText(text,cx,y);ctx.restore();
+}
+
+function drawConfig(ctx,cx,cy,sh){
+  const gap=Math.max(12,Math.round(20*FS));
+  const y=cy+SR[sh.length]+DR+gap;
+  const fs=Math.max(10,Math.round(13*FS));
+  ctx.save();ctx.fillStyle=lineCol();
+  ctx.font=`${fs}px 'Segoe UI',system-ui,sans-serif`;
+  ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText('('+sh.join(', ')+')',cx,y);ctx.restore();
+}
+
+let W=660,H=600;
+
+function layout(cname){
+  const c=COMP[cname];
+  const ml=c.M.length,nl=c.N.length;
+  const mx=[],nx=[];
+  if(ml===1&&nl===1){
+    mx.push({cx:W*.25,cy:H/2});nx.push({cx:W*.75,cy:H/2});
+  }else if(ml===1&&nl===2){
+    mx.push({cx:W*.22,cy:H/2});
+    nx.push({cx:W*.73,cy:H*.30});nx.push({cx:W*.73,cy:H*.70});
+  }else{
+    mx.push({cx:W*.27,cy:H*.30});mx.push({cx:W*.27,cy:H*.70});
+    nx.push({cx:W*.73,cy:H/2});
+  }
+  return{mx,nx};
+}
+
+function buildElecs(cname,lay){
+  const c=COMP[cname];const{mx,nx}=lay;const es=[];
+  c.T.forEach(([mi,ni])=>{
+    const mc=mx[mi],nc=nx[ni],ma=c.M[mi],na=c.N[ni];
+    const giv=es.filter(e=>e.mi===mi).length;
+    const rec=es.filter(e=>e.ni===ni).length;
+    const sPs=oPos(mc.cx,mc.cy,SR[ma.sh.length],ma.sh[ma.sh.length-1]-giv,SA);
+    const sp=sPs[sPs.length-1];
+    const eN=na.sh[na.sh.length-1]+1+rec;
+    const ePs=oPos(nc.cx,nc.cy,SR[na.sh.length],eN,getSlotAngles(na.sh.length-1,na.s,true));
+    const ep=ePs[ePs.length-1];
+    const dx=ep.x-sp.x,dy=ep.y-sp.y,len=Math.sqrt(dx*dx+dy*dy)||1;
+    let px=-dy/len,py=dx/len;if(py>0){px=-px;py=-py;}
+    const ah=68+len*.12;
+    es.push({mi,ni,sx:sp.x,sy:sp.y,ex:ep.x,ey:ep.y,cpx:(sp.x+ep.x)/2+ah*px,cpy:(sp.y+ep.y)/2+ah*py,t:0});
+  });
+  return es;
+}
+
+function eio(t){return t<.5?2*t*t:-1+(4-2*t)*t;}
+function bz(t,a,b,c){return(1-t)*(1-t)*a+2*(1-t)*t*b+t*t*c;}
+
+let CUR='NaCl',ST='initial',ELECS=[],RAF=null;
+const cv=document.getElementById('cv');
+const infoEl=document.getElementById('info');
+
+function draw(){
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#fafbfc';ctx.fillRect(0,0,W,H);
+  const c=COMP[CUR];const lay=layout(CUR);const{mx,nx}=lay;
+  const isI=ST==='ions',isA=ST==='animating';
+
+  if(!isI){
+    const fs=Math.max(10,Math.round(13*FS));
+    ctx.save();ctx.fillStyle=lineCol();ctx.font=`500 ${fs}px 'Segoe UI',system-ui,sans-serif`;ctx.textAlign='center';
+    const topY=Math.max(16,Math.round(20*FS));
+    ctx.fillText(mx.length>1?'Metal atoms':'Metal atom',mx.length>1?(mx[0].cx+mx[1].cx)/2:mx[0].cx,topY);
+    ctx.fillText(nx.length>1?'Non-metal atoms':'Non-metal atom',nx.length>1?(nx[0].cx+nx[1].cx)/2:nx[0].cx,topY);
+    ctx.restore();
+  }
+
+  c.M.forEach((ma,mi)=>{
+    const pos=mx[mi];
+    const tot=ELECS.filter(e=>e.mi===mi).length;
+    const oN=(isA||isI)?Math.max(0,ma.sh[ma.sh.length-1]-tot):ma.sh[ma.sh.length-1];
+    const hideOuter=isI&&oN===0;
+    const rings=hideOuter?ma.sh.length-1:ma.sh.length;
+    drawAtom(ctx,pos.cx,pos.cy,{...ma,isM:true},oN,[],isI,hideOuter);
+    if(!isI){drawInitLabel(ctx,pos.cx,pos.cy,ma.sh,ma.s);drawConfig(ctx,pos.cx,pos.cy,ma.sh);}
+    else{
+      const bRv=SR[rings]+PO+DR+6;
+      const pd2=Math.max(8,Math.round(13*FS)),tk2=Math.max(10,Math.round(16*FS));
+      const yl=pos.cy-bRv-pd2-tk2-Math.max(8,Math.round(14*FS));
+      const cfs=Math.max(11,Math.round(14*FS));
+      ctx.save();ctx.fillStyle=xCol();ctx.font=`600 ${cfs}px 'Segoe UI',system-ui,sans-serif`;
+      ctx.textAlign='center';ctx.textBaseline='bottom';
+      ctx.fillText(ma.s+(ma.q==='+'?'⁺':ma.q==='2+'?'²⁺':ma.q),pos.cx,yl);ctx.restore();
+    }
+  });
+
+  c.N.forEach((na,ni)=>{
+    const pos=nx[ni];
+    const rec=ELECS.filter(e=>e.ni===ni);
+    const xC=[];
+    if(isI){
+      const oR=SR[na.sh.length];const oN=na.sh[na.sh.length-1];
+      const outerSA=getSlotAngles(na.sh.length-1,na.s,true);
+      rec.forEach((_,k)=>{const ps=oPos(pos.cx,pos.cy,oR,oN+1+k,outerSA);xC.push(ps[ps.length-1]);});
+    }
+    drawAtom(ctx,pos.cx,pos.cy,{...na,isM:false},na.sh[na.sh.length-1],xC,isI,false);
+    if(!isI){drawInitLabel(ctx,pos.cx,pos.cy,na.sh,na.s);drawConfig(ctx,pos.cx,pos.cy,na.sh);}
+    else{
+      const bRv=SR[na.sh.length]+PO+DR+6;
+      const pd2=Math.max(8,Math.round(13*FS)),tk2=Math.max(10,Math.round(16*FS));
+      const yl=pos.cy-bRv-pd2-tk2-Math.max(8,Math.round(14*FS));
+      const qs=na.q==='−'?'⁻':na.q==='2−'?'²⁻':na.q;
+      const cfs=Math.max(11,Math.round(14*FS));
+      ctx.save();ctx.fillStyle=dCol();ctx.font=`600 ${cfs}px 'Segoe UI',system-ui,sans-serif`;
+      ctx.textAlign='center';ctx.textBaseline='bottom';
+      ctx.fillText(na.s+qs,pos.cx,yl);ctx.restore();
+    }
+  });
+
+  if(isA){
+    ELECS.forEach(e=>{
+      const et=eio(e.t);
+      drawX(ctx,bz(et,e.sx,e.cpx,e.ex),bz(et,e.sy,e.cpy,e.ey),0.92);
+    });
+  }
+
+  if(ST==='initial'){
+    const drawn=new Set();
+    c.T.forEach(([mi,ni])=>{
+      const key=`${mi}-${ni}`;if(drawn.has(key))return;drawn.add(key);
+      const mc=mx[mi],nc=nx[ni],ma=c.M[mi],na=c.N[ni];
+      const s0=SR[ma.sh.length]+PO+DR+10,e0=SR[na.sh.length]+PO+DR+10;
+      const dx=nc.cx-mc.cx,dy=nc.cy-mc.cy,len=Math.sqrt(dx*dx+dy*dy)||1;
+      const ux=dx/len,uy=dy/len;
+      const sx=mc.cx+ux*s0,sy=mc.cy+uy*s0,ex=nc.cx-ux*e0,ey=nc.cy-uy*e0;
+      ctx.save();ctx.setLineDash([6,5]);
+      ctx.strokeStyle='rgba(80,120,200,.22)';ctx.lineWidth=1.6;
+      ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.stroke();
+      const ang=Math.atan2(ey-sy,ex-sx);
+      ctx.setLineDash([]);ctx.fillStyle='rgba(80,120,200,.3)';
+      ctx.beginPath();ctx.moveTo(ex,ey);
+      ctx.lineTo(ex-12*Math.cos(ang-.38),ey-12*Math.sin(ang-.38));
+      ctx.lineTo(ex-12*Math.cos(ang+.38),ey-12*Math.sin(ang+.38));
+      ctx.closePath();ctx.fill();ctx.restore();
+    });
+  }
+
+  if(isI){
+    const mAx=mx.reduce((s,p)=>s+p.cx,0)/mx.length;
+    const nAx=nx.reduce((s,p)=>s+p.cx,0)/nx.length;
+    const ifs=Math.max(11,Math.round(14*FS));
+    ctx.save();ctx.fillStyle=lineCol();
+    ctx.font=`${ifs}px 'Segoe UI',system-ui,sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('⟵ ionic attraction ⟶',(mAx+nAx)/2,H-Math.max(14,Math.round(18*FS)));ctx.restore();
+  }
+}
+
+function setupCv(){
+  const dpr=window.devicePixelRatio||1;
+  const availW=window.innerWidth-206;
+  const availH=window.innerHeight-83;
+  H=Math.floor(Math.min(availH,availW/1.1));
+  W=Math.floor(H*1.1);
+  if(W>availW){W=Math.floor(availW);H=Math.floor(W/1.1);}
+  H=Math.max(300,H);W=Math.max(330,W);
+  const s=H/700;
+  SR=[0,Math.round(28*s),Math.round(55*s),Math.round(83*s)];
+  NR=Math.max(13,Math.round(20*s));
+  DR=Math.max(3.5,6*s);
+  CS=Math.max(3,5.5*s);
+  PO=Math.max(6,10*s);
+  FS=Math.max(0.65,s);
+  cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
+  cv.style.width=W+'px';cv.style.height=H+'px';
+  cv.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+  infoEl.style.maxWidth=W+'px';
+}
+
+function updateInfo(){
+  const c=COMP[CUR];const n=c.T.length;
+  if(ST==='initial'){
+    const ms=c.M.map(a=>a.s).join(' and '),ns=c.N.map(a=>a.s).join(' and ');
+    infoEl.innerHTML=`<b>${c.name}</b> — ${c.desc}. <b>${n} electron${n>1?'s are':' is'}</b> transferred from <b>${ms}</b> to <b>${ns}</b>. Click ⚡ to animate.`;
+  }else if(ST==='animating'){
+    infoEl.innerHTML=`Transferring <b>${n} electron${n>1?'s':''}</b> from metal to non-metal…`;
+  }else{
+    const mi=c.M.map(a=>`[${a.s}]<sup>${a.q}</sup>`).join(' + ');
+    const ni=c.N.map(a=>`[${a.s}]<sup>${a.q}</sup>`).join(' + ');
+    infoEl.innerHTML=`Ions formed: <b>${mi}</b> and <b>${ni}</b>. Oppositely charged ions attract → <b>ionic bond</b>. <em>Note: × on non-metal = electron from metal.</em>`;
+  }
+}
+
+const AF=110;
+function go(){
+  if(ST!=='initial')return;
+  const lay=layout(CUR);ELECS=buildElecs(CUR,lay);
+  ST='animating';updateInfo();document.getElementById('ab').disabled=true;
+  let fr=0;
+  (function tick(){fr++;const t=Math.min(fr/AF,1);ELECS.forEach(e=>e.t=t);draw();
+    if(t<1)RAF=requestAnimationFrame(tick);else{ST='ions';draw();updateInfo();}})();
+}
+function rst(){
+  if(RAF){cancelAnimationFrame(RAF);RAF=null;}
+  ST='initial';ELECS=[];document.getElementById('ab').disabled=false;updateInfo();draw();
+}
+function sel(name){
+  if(RAF){cancelAnimationFrame(RAF);RAF=null;}
+  CUR=name;ST='initial';ELECS=[];document.getElementById('ab').disabled=false;
+  document.querySelectorAll('.cb').forEach(b=>b.classList.toggle('on',b.dataset.c===name));
+  updateInfo();setupCv();draw();
+}
+
+window.addEventListener('resize',()=>{setupCv();draw();});
+setupCv();sel('NaCl');
+</script>
+</body>
+</html>
